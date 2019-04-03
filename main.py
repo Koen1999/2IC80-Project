@@ -58,7 +58,7 @@ def setup():
         return
 
     print('How long would you like to discover hosts initially?')
-    print('Recommended: ' + str(initial_discovery_time))
+    print('Recommended: ' + str(settings['initial discovery time']))
     settings['initial discovery time'] = let_user_input_number(True)
 
     # Start passive discovery
@@ -69,7 +69,7 @@ def setup():
         thread.start()
         settings['passive discover threads'].add(thread)
 
-    sleep(initial_discovery_time)
+    sleep(settings['initial discovery time'])
     settings['currently discovering'] = False
     sleep(2)
 
@@ -102,7 +102,7 @@ def setup():
 
     print('At what frequency would you like to ARP poison hosts?')
     global arp_poison_frequency
-    print('Recommended: ' + str(arp_poison_frequency))
+    print('Recommended: ' + str(settings['arp poison frequency']))
     settings['arp poison frequency'] = let_user_input_number(True)
 
     print('Which intercepted packages would you like to forward?')
