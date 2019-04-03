@@ -44,6 +44,7 @@ settings['restore arp cache'] = True
 settings['interrupted'] = False
 settings['locks'] = defaultdict(Lock)
 settings['passive discover threads'] = set()
+settings['forward threads'] = set()
 settings['arp poison threads'] = set()
 settings['dns spoof threads'] = set()
 
@@ -111,8 +112,6 @@ def setup():
         settings['forward'] = 'all'
     if chosen == 1:
         settings['forward'] = 'all-except'
-    for interface in settings['chosen interfaces']:
-        forward.forward(interface, settings)
 
     print('Would you like to restore ARP caches when the attack is broken off?')
     global restore_arp_cache
@@ -151,6 +150,11 @@ def setup():
     # Start continuous poisoning
     print('Started initial poisoning ...')
     for interface in settings['chosen interfaces']:
+        thread = Thread(target=forward.forward, args=(interface, settings))
+        thread.daemon = True
+        thread.start()
+        settings['forward threads'].add(thread)
+
         thread = Thread(target=arp.poison, args=(interface, settings))
         thread.daemon = True
         thread.start()
