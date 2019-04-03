@@ -24,7 +24,7 @@ def forward(interface: str, settings: dict):
         lock.acquire()
         received_packet[Ether].dst = get_mac_by_ip(received_packet[IP].dst, hosts_dictionary)
         lock.release()
-        sendp(received_packet, interface=interface, verbose=settings['show debug'])
+        sendp(received_packet, iface=interface, verbose=settings['show debug'])
 
     def check_forward(received_packet):
         if received_packet[IP].dst == attacker_ip or received_packet[Ether].dst != attacker_mac:
