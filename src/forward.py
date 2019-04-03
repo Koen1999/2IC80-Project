@@ -27,11 +27,15 @@ def forward(interface: str, settings: dict):
         sendp(received_packet, iface=interface, verbose=settings['show debug'])
 
     def check_forward(received_packet):
-        if received_packet[IP].dst == attacker_ip or received_packet[Ether].dst != attacker_mac:
+        if received_packet[Ether].dst != attacker_mac:
             return
-        if DNS in received_packet:
-            if received_packet[DNS].opcode == 0 and received_packet[DNS].ancount > 0:
-                if received_packet[Ether].src != attacker_mac:
+        if received_packet[IP].dst == attacker_ip:
+            return
+        if settings['forward'] == 'all':
+            send_forward(received_packet)
+        elif settings['forward'] == 'all-except':
+            if DNS in received_packet:
+                if received_packet[DNS].qr == 1 and received_packet[DNS].ancount > 0:
                     if settings['show selective forward block']:
                         print('Forwarded package from ' + received_packet[IP].src + ' to ' + received_packet[IP].dst)
         send_forward(received_packet)

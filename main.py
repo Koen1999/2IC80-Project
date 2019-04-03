@@ -10,20 +10,12 @@ from scapy.arch import get_if_list
 from src import arp, discover, dns, forward
 from src.tools import powerset, let_user_pick_options, let_user_input_number, let_user_input_domain, let_user_input_ip
 
-arp_poison_frequency = 3
-initial_discovery_time = 60
-show_discovery = True
-show_arp_poison = True
-show_dns_spoof = True
-show_selective_forward = True
-show_debug = False
-
 # (Default) settings
 settings = dict()
 settings['arp poison frequency'] = 3  # Poisoning frequency in seconds
 settings['initial discovery time'] = 60  # Time to discover before starting poisoning in seconds
 settings['show discovery'] = True  # Whether to display a message when a new host has been discovered
-settings['show arp poison'] = True  # Whether to display a message when an ARP poison packet is sent
+settings['show arp poison'] = False  # Whether to display a message when an ARP poison packet is sent
 settings['show dns spoof'] = True  # Whether to display a message when a DNS answer has been spoofed
 settings[
     'show selective forward block'] = True  # Whether to display a message when a packet selected not to be forwarded
@@ -177,7 +169,7 @@ if __name__ == '__main__':
     except KeyboardInterrupt:
         print('Exiting program ...')
         settings['interrupted'] = True
-        sleep(arp_poison_frequency)
+        sleep(settings['arp poison frequency'])
         if settings['restore arp cache']:
             for interface in settings['chosen interfaces']:
                 arp.restore(interface, settings)
