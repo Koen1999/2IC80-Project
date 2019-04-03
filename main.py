@@ -178,6 +178,6 @@ if __name__ == '__main__':
         print('Exiting program ...')
         settings['interrupted'] = True
         sleep(arp_poison_frequency)
-        if restore_arp_cache:
+        if settings['restore arp cache']:
             for interface in settings['chosen interfaces']:
                 arp.restore(interface, settings)
