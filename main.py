@@ -102,7 +102,6 @@ def setup():
         return
 
     print('At what frequency would you like to ARP poison hosts?')
-    global arp_poison_frequency
     print('Recommended: ' + str(settings['arp poison frequency']))
     settings['arp poison frequency'] = let_user_input_number(True)
 
@@ -114,10 +113,9 @@ def setup():
         settings['forward'] = 'all-except'
 
     print('Would you like to restore ARP caches when the attack is broken off?')
-    global restore_arp_cache
     chosen = let_user_pick_options(['yes', 'no'], True)
     if chosen == 1:
-        restore_arp_cache = False
+        settings['restore arp cache'] = False
 
     print('Would you like to spoof all domains with DNS poisoning?')
     chosen = let_user_pick_options(['yes', 'no'], True)
