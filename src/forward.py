@@ -14,7 +14,7 @@ from src.tools import get_mac_by_ip
 
 def forward(interface: str, settings: dict):
     print('Forwarding intercepted packets on ' + interface)
-    hosts_dictionary: dict = settings['hosts'][interface]
+    hosts_dictionary: dict = settings['poisoned hosts'][interface]
     lock: Lock = settings['locks'][interface]
     attacker_mac = get_if_hwaddr(interface)
     attacker_ip = get_if_addr(interface)
