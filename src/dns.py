@@ -75,4 +75,4 @@ def spoof(interface: str, settings: dict):
         check_dns_callback(received_packet, src_mac, src_ip)
 
     while not settings['interrupted']:
-        sniff(iface=interface, prn=dns_callback, filter='udp port 53', store=0)
+        sniff(iface=interface, prn=dns_callback, filter='udp port 53', store=0, timeout=1)

