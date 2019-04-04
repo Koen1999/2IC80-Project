@@ -25,6 +25,8 @@ def forward(interface: str, settings: dict):
         lock.acquire()
         received_packet[Ether].dst = get_mac_by_ip(received_packet[IP].dst, hosts_dictionary)
         lock.release()
+        if settings['show debug']:
+            received_packet.show()
         try:
             sendp(received_packet, iface=interface, verbose=settings['show debug'])
         except Exception as exception:
