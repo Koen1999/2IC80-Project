@@ -11,8 +11,7 @@ The idea is to improve the semi-automatic approach of Ettercap. This tool can re
 
 The tool has been developed for a Linux environment.
 
-In order to use the tool python 3.6 or higher must be installed:
- - [Python 3.6](https://www.python.org/downloads/release/python-360/)
+In order to use the tool python 3.7 or higher must be installed:
  - [Python 3.7](https://www.python.org/downloads/release/python-370/)
  
 Any other version might work as well, but has not been tested.
