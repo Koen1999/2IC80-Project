@@ -26,8 +26,8 @@ settings['currently discovering'] = True
 settings['continue discovery during poisoning'] = True
 settings['forward'] = 'all-except'
 settings['chosen interfaces'] = set()
-settings['poisoned hosts'] = defaultdict(dict)
-settings['whitelist poisoned hosts'] = defaultdict(dict)
+settings['hosts'] = defaultdict(dict)
+settings['whitelist poisoned hosts'] = defaultdict(set)
 settings['spoof all domains'] = True
 settings['spoofed domains'] = set()
 settings['whitelist spoofed domains'] = set()
@@ -79,14 +79,14 @@ def setup():
         if chosen2 == 0:
             for interface in settings['chosen interfaces']:
                 print('Which hosts would you like to whitelist on ' + interface + '?')
-                powerset_hosts_interface = powerset(settings['poisoned hosts'][interface])
+                powerset_hosts_interface = powerset(settings['hosts'][interface].keys())
                 settings['whitelist poisoned hosts'][interface] = powerset_hosts_interface[
                     let_user_pick_options(powerset_hosts_interface, True)]
         elif chosen2 == 1:
             for interface in settings['chosen interfaces']:
                 print('Which hosts would you like to attack on ' + interface + '?')
-                powerset_hosts_interface = powerset(settings['poisoned hosts'][interface])
-                settings['poisoned hosts'][interface] = powerset_hosts_interface[
+                powerset_hosts_interface = powerset(settings['hosts'][interface].keys())
+                settings['hosts'][interface] = powerset_hosts_interface[
                     let_user_pick_options(powerset_hosts_interface, True)]
         elif chosen2 is None:
             return

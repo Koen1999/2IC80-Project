@@ -14,7 +14,7 @@ from src.tools import get_mac_by_ip
 
 def spoof(interface: str, settings: dict):
     print('DNS poisoning hosts on ' + interface + ' after requests are sent')
-    hosts_dictionary: dict = settings['poisoned hosts'][interface]
+    hosts_dictionary: dict = settings['hosts'][interface]
     whitelist_hosts: dict = settings['whitelist poisoned hosts'][interface]
     whitelist_domains: dict = settings['whitelist spoofed domains']
     attacker_mac = get_if_hwaddr(interface)
