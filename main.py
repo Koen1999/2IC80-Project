@@ -78,16 +78,18 @@ def setup():
         chosen2 = let_user_pick_options(['whitelist hosts', 'select hosts to be attacked'], True)
         if chosen2 == 0:
             for interface in settings['chosen interfaces']:
-                print('Which hosts would you like to whitelist on ' + interface + '?')
-                powerset_hosts_interface = powerset(settings['hosts'][interface].keys())
-                settings['whitelist poisoned hosts'][interface] = powerset_hosts_interface[
-                    let_user_pick_options(powerset_hosts_interface, True)]
+                if len(settings['hosts'][interface].keys()) > 0:
+                    print('Which hosts would you like to whitelist on ' + interface + '?')
+                    powerset_hosts_interface = powerset(settings['hosts'][interface].keys())
+                    settings['whitelist poisoned hosts'][interface] = powerset_hosts_interface[
+                        let_user_pick_options(powerset_hosts_interface, True)]
         elif chosen2 == 1:
             for interface in settings['chosen interfaces']:
-                print('Which hosts would you like to attack on ' + interface + '?')
-                powerset_hosts_interface = powerset(settings['hosts'][interface].keys())
-                settings['hosts'][interface] = powerset_hosts_interface[
-                    let_user_pick_options(powerset_hosts_interface, True)]
+                if len(settings['hosts'][interface].keys()) > 0:
+                    print('Which hosts would you like to attack on ' + interface + '?')
+                    powerset_hosts_interface = powerset(settings['hosts'][interface].keys())
+                    settings['hosts'][interface] = powerset_hosts_interface[
+                        let_user_pick_options(powerset_hosts_interface, True)]
         elif chosen2 is None:
             return
     elif chosen is None:
