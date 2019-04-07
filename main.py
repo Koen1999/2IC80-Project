@@ -5,6 +5,7 @@ from time import sleep
 
 # Additional libraries
 from scapy.arch import get_if_list
+from scapy.error import Scapy_Exception
 
 # Local libraries
 from src import arp, discover, dns, forward
@@ -142,22 +143,24 @@ def setup():
     # Start continuous poisoning
     print('Started initial poisoning ...')
     for interface in settings['chosen interfaces']:
-        thread = Thread(target=forward.forward, args=(interface, settings))
-        thread.daemon = True
-        thread.start()
-        settings['forward threads'].add(thread)
-
-        thread = Thread(target=arp.poison, args=(interface, settings))
-        thread.daemon = True
-        thread.start()
-        settings['arp poison threads'].add(thread)
-
-        if settings['spoof all domains'] or len(settings['spoofed domains']) > 0:
-            thread = Thread(target=dns.spoof, args=(interface, settings))
+        try:
+            thread = Thread(target=forward.forward, args=(interface, settings))
             thread.daemon = True
             thread.start()
-            settings['dns spoof threads'].add(thread)
+            settings['forward threads'].add(thread)
 
+            thread = Thread(target=arp.poison, args=(interface, settings))
+            thread.daemon = True
+            thread.start()
+            settings['arp poison threads'].add(thread)
+
+            if settings['spoof all domains'] or len(settings['spoofed domains']) > 0:
+                thread = Thread(target=dns.spoof, args=(interface, settings))
+                thread.daemon = True
+                thread.start()
+                settings['dns spoof threads'].add(thread)
+        except Scapy_Exception:
+            print('Scapy cannot operate on interface ' + interface)
         sleep(settings['arp poison frequency'] / len(settings['chosen interfaces']))
 
     # Wait for keyboard interrupt
