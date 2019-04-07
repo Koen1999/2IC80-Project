@@ -100,7 +100,8 @@ def setup():
     settings['arp poison frequency'] = let_user_input_number(True)
 
     print('Which intercepted packages would you like to forward?')
-    chosen = let_user_pick_options(['all', 'all, except non-spoofed DNS answers', 'none'], True)
+    chosen = let_user_pick_options(
+        ['all', 'all, except non-spoofed DNS answers that correspond to a spoofed domain', 'none'], True)
     if chosen == 0:
         settings['forward'] = 'all'
     if chosen == 1:

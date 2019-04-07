@@ -15,7 +15,6 @@ from scapy.sendrecv import sniff
 def passive(interface: str, settings: dict):
     try:
         hosts_dictionary: dict = settings['hosts'][interface]
-        whitelist_iter: iter = settings['whitelist poisoned hosts'][interface]
         lock: Lock = settings['locks'][interface]
         attacker_mac = get_if_hwaddr(interface)
         attacker_ip = get_if_addr(interface)
