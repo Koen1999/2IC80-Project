@@ -13,8 +13,8 @@ from scapy.sendrecv import sniff
 
 def passive(interface: str, settings: dict):
     print('Passively discovering new hosts on ' + interface)
-    hosts_dictionary: dict = settings['poisoned hosts'][interface]
-    whitelist_dictionary: dict = settings['whitelist poisoned hosts'][interface]
+    hosts_dictionary: dict = settings['hosts'][interface]
+    whitelist_iter: iter = settings['whitelist poisoned hosts'][interface]
     lock: Lock = settings['locks'][interface]
     attacker_mac = get_if_hwaddr(interface)
     attacker_ip = get_if_addr(interface)
@@ -24,9 +24,7 @@ def passive(interface: str, settings: dict):
             return
         if ip == attacker_ip:
             return
-        if mac in whitelist_dictionary:
-            if ip in whitelist_dictionary[mac]:
-                return
+
         if mac == '00:00:00:00:00:00':
             return
         if IPy_IP(ip).iptype() != 'PRIVATE':

