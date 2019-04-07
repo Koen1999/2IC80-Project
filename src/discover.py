@@ -76,4 +76,7 @@ def passive(interface: str, settings: dict):
                 sleep(1)
     except Scapy_Exception:
         print('Scapy cannot operate on interface ' + interface)
+        main_lock = settings['main lock']
+        main_lock.acquire()
         settings['chosen interfaces'].remove(interface)
+        main_lock.release()

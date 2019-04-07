@@ -34,6 +34,8 @@ settings['whitelist spoofed domains'] = set()
 settings['redirect spoofed domains to'] = ''
 settings['restore arp cache'] = True
 settings['interrupted'] = False
+main_lock = Lock()
+settings['main lock'] = main_lock
 settings['locks'] = defaultdict(Lock)
 settings['passive discover threads'] = set()
 settings['forward threads'] = set()
@@ -56,11 +58,13 @@ def setup():
 
     # Start passive discovery
     print('Started passive network discovery ...')
+    main_lock.acquire()
     for interface in settings['chosen interfaces']:
         thread = Thread(target=discover.passive, args=(interface, settings))
         thread.daemon = True
         thread.start()
         settings['passive discover threads'].add(thread)
+    main_lock.release()
 
     sleep(settings['initial discovery time'])
     settings['currently discovering'] = False
