@@ -10,7 +10,7 @@ def powerset(iterable: iter) -> list:
     pset = []
     for n in range(len(iterable) + 1):
         for sset in combinations(iterable, n):
-            pset.append(sset)
+            pset.append(set(sset))
     return pset
 
 

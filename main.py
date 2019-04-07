@@ -5,7 +5,6 @@ from time import sleep
 
 # Additional libraries
 from scapy.arch import get_if_list
-from scapy.error import Scapy_Exception
 
 # Local libraries
 from src import arp, discover, dns, forward
@@ -35,6 +34,8 @@ settings['whitelist spoofed domains'] = set()
 settings['redirect spoofed domains to'] = ''
 settings['restore arp cache'] = True
 settings['interrupted'] = False
+main_lock = Lock()
+settings['main lock'] = main_lock
 settings['locks'] = defaultdict(Lock)
 settings['passive discover threads'] = set()
 settings['forward threads'] = set()
@@ -57,11 +58,13 @@ def setup():
 
     # Start passive discovery
     print('Started passive network discovery ...')
+    main_lock.acquire()
     for interface in settings['chosen interfaces']:
         thread = Thread(target=discover.passive, args=(interface, settings))
         thread.daemon = True
         thread.start()
         settings['passive discover threads'].add(thread)
+    main_lock.release()
 
     sleep(settings['initial discovery time'])
     settings['currently discovering'] = False
@@ -101,7 +104,8 @@ def setup():
     settings['arp poison frequency'] = let_user_input_number(True)
 
     print('Which intercepted packages would you like to forward?')
-    chosen = let_user_pick_options(['all', 'all, except non-spoofed DNS answers', 'none'], True)
+    chosen = let_user_pick_options(
+        ['all', 'all, except non-spoofed DNS answers that correspond to a spoofed domain', 'none'], True)
     if chosen == 0:
         settings['forward'] = 'all'
     if chosen == 1:
@@ -143,24 +147,21 @@ def setup():
     # Start continuous poisoning
     print('Started initial poisoning ...')
     for interface in settings['chosen interfaces']:
-        try:
-            thread = Thread(target=forward.forward, args=(interface, settings))
+        thread = Thread(target=forward.forward, args=(interface, settings))
+        thread.daemon = True
+        thread.start()
+        settings['forward threads'].add(thread)
+
+        thread = Thread(target=arp.poison, args=(interface, settings))
+        thread.daemon = True
+        thread.start()
+        settings['arp poison threads'].add(thread)
+
+        if settings['spoof all domains'] or len(settings['spoofed domains']) > 0:
+            thread = Thread(target=dns.spoof, args=(interface, settings))
             thread.daemon = True
             thread.start()
-            settings['forward threads'].add(thread)
-
-            thread = Thread(target=arp.poison, args=(interface, settings))
-            thread.daemon = True
-            thread.start()
-            settings['arp poison threads'].add(thread)
-
-            if settings['spoof all domains'] or len(settings['spoofed domains']) > 0:
-                thread = Thread(target=dns.spoof, args=(interface, settings))
-                thread.daemon = True
-                thread.start()
-                settings['dns spoof threads'].add(thread)
-        except Scapy_Exception:
-            print('Scapy cannot operate on interface ' + interface)
+            settings['dns spoof threads'].add(thread)
         sleep(settings['arp poison frequency'] / len(settings['chosen interfaces']))
 
     # Wait for keyboard interrupt

