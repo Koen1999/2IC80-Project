@@ -7,6 +7,11 @@ This is a tool used to automatically ARP poison hosts on the local network, as w
 It has options for selecting interfaces, whitelisting certain hosts, DNS spoofing specific domains, or all.
 The idea is to improve the semi-automatic approach of Ettercap. This tool can redirect local traffic visiting `www.example.com` to any IP address specified by the attacker. Furthermore, the attacker can perform a Man-in-the-Middle (MitM) attack on any of the intercepted packages.
 
+
+You can find a short demo of the tool here: 
+
+[![2IC80-Project Demo](https://i.ytimg.com/vi/Vbff_NE_RN0/hqdefault.jpg?sqp=-oaymwEjCPYBEIoBSFryq4qpAxUIARUAAAAAGAElAADIQj0AgKJDeAE=&rs=AOn4CLDoX8OeNvVGShUI0lIb188gOVDTjw)](https://youtu.be/Vbff_NE_RN0)
+
 # Prerequisites
 
 The tool has been developed for a Linux environment.
